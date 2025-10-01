@@ -1,0 +1,32 @@
+# Виртуальное окружение
+venv/
+ENV/
+env/
+
+# Кэш питона
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Логи
+*.log
+
+# Настройки IDE / редакторов
+.vscode/
+.idea/
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+
+# Токены и секреты
+.env
+
+# Если будешь делать билд или паковать проект
+build/
+dist/
+*.egg-info/
+# Исключить бинарники
+ngrok.exe
+server/stockfish.exe

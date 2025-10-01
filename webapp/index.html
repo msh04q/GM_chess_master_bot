@@ -1,0 +1,125 @@
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('Chess:', typeof Chess);
+  console.log('Chessground:', typeof Chessground);
+  console.log('Chessground functions:', Object.keys(Chessground || {}));
+  
+  if (typeof Chess === 'undefined' || !Chessground) {
+    document.getElementById('status').textContent = 'Ошибка загрузки библиотек';
+    return;
+  }
+  
+  const game = new Chess();
+  const board = document.getElementById('board');
+  const status = document.getElementById('status');
+  const resetBtn = document.getElementById('reset');
+  
+  function toDests(chess) {
+    const dests = new Map();
+    chess.SQUARES.forEach(s => {
+      const moves = chess.moves({square: s, verbose: true});
+      if (moves.length) dests.set(s, moves.map(m => m.to));
+    });
+    return dests;
+  }
+  
+  // Пробуем разные варианты вызова Chessground
+  let ground;
+  if (typeof Chessground === 'function') {
+    ground = Chessground(board, {
+      orientation: 'white',
+      coordinates: true,
+      movable: {
+        color: 'white',
+        free: false,
+        dests: toDests(game)
+      },
+      events: {
+        move: function(orig, dest) {
+          const move = game.move({from: orig, to: dest, promotion: 'q'});
+          if (move) {
+            updateBoard();
+            if (!game.is_game_over()) {
+              status.textContent = 'Думает бот...';
+              fetch('/move', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({fen: game.fen()})
+              })
+              .then(r => r.json())
+              .then(data => {
+                if (data.botMove) {
+                  game.move(data.botMove);
+                  updateBoard();
+                }
+              })
+              .catch(error => {
+                console.error('Ошибка:', error);
+                status.textContent = 'Ошибка связи';
+              });
+            }
+          }
+          return !!move;
+        }
+      }
+    });
+  } else if (Chessground.Chessground) {
+    // Если это объект с методом Chessground
+    ground = Chessground.Chessground(board, {
+      // ... та же конфигурация
+      orientation: 'white',
+      coordinates: true,
+      movable: {
+        color: 'white',
+        free: false,
+        dests: toDests(game)
+      },
+      events: {
+        move: function(orig, dest) {
+          const move = game.move({from: orig, to: dest, promotion: 'q'});
+          if (move) {
+            updateBoard();
+            if (!game.is_game_over()) {
+              status.textContent = 'Думает бот...';
+              fetch('/move', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({fen: game.fen()})
+              })
+              .then(r => r.json())
+              .then(data => {
+                if (data.botMove) {
+                  game.move(data.botMove);
+                  updateBoard();
+                }
+              });
+            }
+          }
+          return !!move;
+        }
+      }
+    });
+  } else {
+    document.getElementById('status').textContent = 'Неверная версия Chessground';
+    return;
+  }
+  
+  function updateBoard() {
+    ground.set({
+      fen: game.fen(),
+      turnColor: game.turn() === 'w' ? 'white' : 'black',
+      movable: { color: game.turn(), dests: toDests(game) }
+    });
+    status.textContent = game.is_game_over() ? 'Игра окончена' : `Ход ${game.turn() === 'w' ? 'белых' : 'чёрных'}`;
+  }
+  
+  resetBtn.addEventListener('click', function() {
+    game.reset();
+    updateBoard();
+    status.textContent = 'Новая игра! Ваш ход (белые)';
+  });
+  
+  updateBoard();
+  status.textContent = 'Ваш ход (белые)';
+});
+</script>

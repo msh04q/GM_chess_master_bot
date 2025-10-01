@@ -1,0 +1,5 @@
+python-telegram-bot==20.3
+flask
+flask-ngrok
+python-chess
+flask_cors
