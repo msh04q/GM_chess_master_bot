@@ -12,4 +12,9 @@ source venv/Scripts/activate
 pip install -r requirements.txt
 cd server
 python server.py
-откройте новый терминал гит баш и запустите там python main.py , сначала перейдя в папку где лежит main.py
+```
+откройте новый терминал гит баш и запустите там 
+```
+python main.py
+```
+сначала перейдя в папку где лежит ```main.py```
